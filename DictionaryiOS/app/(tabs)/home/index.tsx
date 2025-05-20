@@ -1,267 +1,274 @@
-import React, { useState, useEffect } from 'react';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
+  Image,
   ScrollView,
+  StyleSheet,
+  Text,
   TextInput,
   TouchableOpacity,
-  Dimensions,
+  View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
-import words from '../../../assets/data/words.json';
+import { useTheme } from '../../context/ThemeContext';
 
-const { width } = Dimensions.get('window');
-
-const quotes = [
-  'The best way to get started is to quit talking and begin doing.',
-  'Success is not the key to happiness. Happiness is the key to success.',
-  'Push yourself, because no one else is going to do it for you.',
-  'Believe you can and you’re halfway there.',
-  'Dream it. Wish it. Do it.',
-];
-
-const getRandomQuote = () => {
-  const index = Math.floor(Math.random() * quotes.length);
-  return quotes[index];
-};
-
-const getRandomWords = (count = 5) => {
-  const shuffled = [...words].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, count);
-};
-
-const HomeScreen = () => {
+const Home = () => {
+  const { theme } = useTheme();
   const [searchOpen, setSearchOpen] = useState(false);
-  const [searchText, setSearchText] = useState('');
-  const [quote, setQuote] = useState('');
-  const [trendingWords, setTrendingWords] = useState<{ id: number; word: string; partOfSpeech: string; meaning: string; synonyms: string[]; example: string; }[]>([]);
+  const [savedWords, setSavedWords] = useState<number[]>([]);
+  const [trendingIndex, setTrendingIndex] = useState(0);
 
-  useEffect(() => {
-    setQuote(getRandomQuote());
-    const trending = words.slice(0, 5);
-    setTrendingWords(trending.length ? trending : getRandomWords());
-  }, []);
+  const toggleSearch = () => setSearchOpen(!searchOpen);
 
-  const toggleSearch = () => {
-    setSearchOpen(!searchOpen);
-    setSearchText('');
+  const toggleSave = (id: number) => {
+    setSavedWords((prev) =>
+      prev.includes(id) ? prev.filter((wid) => wid !== id) : [...prev, id]
+    );
   };
 
-  const renderSaveButton = () => (
-    <TouchableOpacity style={styles.saveButton}>
-      <Feather name="bookmark" size={18} color="#1F2937" />
+  const renderSaveButton = (id: number) => (
+    <TouchableOpacity
+      onPress={() => toggleSave(id)}
+      style={[
+        styles.saveButton,
+        savedWords.includes(id) && { backgroundColor: '#DBEAFE' },
+      ]}
+    >
+      <Feather
+        name="bookmark"
+        size={18}
+        color={savedWords.includes(id) ? '#1D4ED8' : '#1F2937'}
+      />
     </TouchableOpacity>
   );
 
-  const filteredWords = searchText
-    ? words.filter((w) =>
-        w.word.toLowerCase().includes(searchText.toLowerCase())
-      )
-    : [];
+  const words = [
+    {
+      id: 1,
+      word: 'Ubiquitous',
+      meaning: 'Present, appearing, or found everywhere.',
+    },
+  ];
+
+  const trendingWords = [
+    {
+      id: 2,
+      word: 'Ephemeral',
+      meaning: 'Lasting for a very short time.',
+    },
+    {
+      id: 3,
+      word: 'Serendipity',
+      meaning: 'The occurrence of events by chance in a happy or beneficial way.',
+    },
+    {
+      id: 4,
+      word: 'Petrichor',
+      meaning: 'A pleasant smell that frequently accompanies the first rain after a long period of warm, dry weather.',
+    },
+    {
+      id: 5,
+      word: 'Ineffable',
+      meaning: 'Too great or extreme to be expressed or described in words.',
+    },
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTrendingIndex((prevIndex) => (prevIndex + 1) % trendingWords.length);
+    }, 20000); // auto-switch every 20 seconds
+    return () => clearInterval(interval);
+  }, [trendingWords.length]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          {searchOpen ? (
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search words..."
-              value={searchText}
-              onChangeText={setSearchText}
-              autoFocus
-              placeholderTextColor="#9CA3AF"
-            />
-          ) : (
-            <Text style={styles.title}>📘 WordWise</Text>
-          )}
-
-          <View style={styles.headerIcons}>
-            <TouchableOpacity onPress={toggleSearch} style={styles.iconWrapper}>
-              <Feather name={searchOpen ? 'x' : 'search'} size={20} color="black" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconWrapper}>
-              <MaterialCommunityIcons name="microphone-outline" size={20} color="black" />
-            </TouchableOpacity>
-          </View>
+    <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Image
+            source={require('../../../assets/images/icon.png')}
+            style={styles.appIcon}
+          />
+          {!searchOpen && <Text style={[styles.title, { color: theme.textColor }]}>WordWise</Text>}
         </View>
 
+        <View style={styles.headerIcons}>
+          <TouchableOpacity onPress={toggleSearch} style={styles.iconWrapper}>
+            <Feather name={searchOpen ? 'x' : 'search'} size={20} color={theme.iconColor} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconWrapper}>
+            <MaterialCommunityIcons name="microphone-outline" size={20} color={theme.iconColor} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {searchOpen && (
+        <TextInput
+          style={[styles.searchInput, { backgroundColor: theme.cardBackground, color: theme.textColor, borderColor: theme.borderColor }]}
+          placeholder="Search for a word"
+          placeholderTextColor={theme.borderColor}
+        />
+      )}
+
+      <ScrollView showsVerticalScrollIndicator={false}>
         {/* Word of the Day */}
-        <View style={styles.wordCard}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.sectionTitle}>✨ Word of the Day</Text>
-            {renderSaveButton()}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.textColor }]}>Word of the Day</Text>
+          <View style={[styles.card, { backgroundColor: theme.cardBackground, borderColor: theme.borderColor }]}>
+            <View style={styles.cardHeader}>
+              <Text style={[styles.wordTitle, { color: theme.textColor }]}>{words[0].word}</Text>
+              {renderSaveButton(words[0].id)}
+            </View>
+            <Text style={[styles.wordMeaning, { color: theme.textColor }]}>{words[0].meaning}</Text>
           </View>
-          <Text style={styles.wordTitle}>{words[0].word}</Text>
-          <Text style={styles.wordDefinition}>{words[0].meaning}</Text>
         </View>
 
         {/* Daily Quote */}
-        <View style={styles.quoteCard}>
-          <Text style={styles.sectionTitle}>🧠 Daily Quote</Text>
-          <Text style={styles.quoteText}>"{quote}"</Text>
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.textColor }]}>Daily Quote</Text>
+          <View style={[styles.quoteCard, { backgroundColor: '#DBEAFE', borderColor: '#BFDBFE' }]}>
+            <Text style={styles.quoteText}>
+              The limits of my language mean the limits of my world.
+            </Text>
+            <Text style={styles.quoteAuthor}>– Ludwig Wittgenstein</Text>
+          </View>
         </View>
 
         {/* Trending Words */}
-        <View>
-          <Text style={styles.sectionTitle}>🔥 Trending Words</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.trendingScroll}>
-            {trendingWords.map((item) => (
-              <View key={item.id} style={styles.trendingCard}>
-                <View style={styles.cardHeader}>
-                  <Text style={styles.trendingTitle}>{item.word}</Text>
-                  {renderSaveButton()}
-                </View>
-                <Text style={styles.trendingDesc}>{item.meaning}</Text>
-              </View>
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* Search Results */}
-        {searchText.length > 0 && (
-          <View style={{ marginTop: 24 }}>
-            <Text style={styles.sectionTitle}>🔍 Search Results</Text>
-            {filteredWords.length === 0 ? (
-              <Text style={{ color: '#9CA3AF', fontStyle: 'italic' }}>No matches found.</Text>
-            ) : (
-              filteredWords.map((item) => (
-                <View key={item.id} style={styles.trendingCard}>
-                  <View style={styles.cardHeader}>
-                    <Text style={styles.trendingTitle}>{item.word}</Text>
-                    {renderSaveButton()}
-                  </View>
-                  <Text style={styles.trendingDesc}>{item.meaning}</Text>
-                  <Text style={{ color: '#9CA3AF', marginTop: 4 }}>
-                    e.g., {item.example}
-                  </Text>
-                </View>
-              ))
-            )}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.textColor }]}>Trending Words</Text>
+          <View style={[styles.trendingCard, { backgroundColor: theme.cardBackground, borderColor: theme.borderColor }]}>
+            <View style={styles.cardHeader}>
+              <Text style={[styles.trendingTitle, { color: theme.textColor }]}>
+                {trendingWords[trendingIndex].word}
+              </Text>
+              {renderSaveButton(trendingWords[trendingIndex].id)}
+            </View>
+            <Text style={[styles.trendingDesc, { color: theme.textColor }]}>
+              {trendingWords[trendingIndex].meaning}
+            </Text>
           </View>
-        )}
+        </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
-export default HomeScreen;
+export default Home;
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-  },
   container: {
-    padding: 16,
-    paddingBottom: 36,
+    flex: 1,
+    padding: 10,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
-    marginTop: 16,
+    marginBottom: 20,
+  },
+  appIcon: {
+    width: 28,
+    height: 28,
+    marginRight: 10,
+    borderRadius: 6,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111827',
+    fontSize: 26,
+    fontWeight: 'bold',
   },
   headerIcons: {
     flexDirection: 'row',
-    gap: 12,
   },
   iconWrapper: {
     marginLeft: 12,
+    padding: 6,
+    borderRadius: 6,
+    backgroundColor: '#E5E7EB',
   },
   searchInput: {
-    flex: 1,
-    borderBottomWidth: 2,
-    borderColor: '#D1D5DB',
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    fontSize: 16,
-    color: '#1F2937',
+    height: 44,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    marginBottom: 20,
   },
-  wordCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 24,
-    marginBottom: 24,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
+  section: {
+    marginBottom: 28,
   },
-  quoteCard: {
-    backgroundColor: '#E0F2FE',
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 10,
+  },
+  card: {
     borderRadius: 20,
     padding: 20,
-    marginBottom: 24,
+    borderWidth: 1,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    marginHorizontal: 0,
+    width: '100%',
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   wordTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#1F2937',
-    marginTop: 12,
-  },
-  wordDefinition: {
-    marginTop: 8,
-    fontSize: 16,
-    color: '#4B5563',
-  },
-  quoteText: {
-    marginTop: 12,
-    fontSize: 16,
-    fontStyle: 'italic',
-    color: '#1E3A8A',
-  },
-  trendingScroll: {
-    flexDirection: 'row',
-    marginTop: 12,
-  },
-  trendingCard: {
-    width: width * 0.6,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginRight: 16,
-    borderColor: '#E5E7EB',
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  trendingTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
   },
-  trendingDesc: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 8,
+  wordMeaning: {
+    fontSize: 16,
   },
   saveButton: {
     padding: 6,
-    borderRadius: 8,
-    backgroundColor: '#F9FAFB',
+    borderRadius: 6,
+    backgroundColor: '#F3F4F6',
+  },
+  trendingCard: {
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    marginHorizontal: 0,
+    marginTop: 10,
+    width: '100%',
+  },
+  trendingTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  trendingDesc: {
+    fontSize: 14,
+    marginTop: 6,
+  },
+  quoteCard: {
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    marginHorizontal: 0,
+    marginTop: 8,
+    width: '100%',
+  },
+  quoteText: {
+    fontSize: 16,
+    fontStyle: 'italic',
+    color: '#1E3A8A',
+    marginBottom: 10,
+  },
+  quoteAuthor: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1E3A8A',
+    alignSelf: 'flex-end',
   },
 });

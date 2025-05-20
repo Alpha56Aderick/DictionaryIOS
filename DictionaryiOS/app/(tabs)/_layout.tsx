@@ -1,6 +1,9 @@
-import React, { JSX } from 'react';
-import { Tabs } from 'expo-router';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Tabs } from 'expo-router';
+import React, { JSX } from 'react';
+
+// Tab layout component
+import { ThemeProvider, useTheme } from '../context/ThemeContext';
 
 // Define tab screen type
 type TabScreen = {
@@ -34,44 +37,51 @@ const tabScreens: TabScreen[] = [
 ];
 
 // Extract styles into constants
-const tabBarStyle = {
-  backgroundColor: '#fff',
-  borderTopColor: '#E5E7EB',
-  borderTopWidth: 0.5,
-  height: 65,
-  paddingTop: 5,
-};
-
 const tabBarLabelStyle = {
   fontSize: 11,
-  fontWeight: 'bold',
+  fontWeight: '700' as '700',
 };
 
 // Function to render tab icons
 const renderTabIcon = (icon: JSX.Element, color: string, size: number) =>
   React.cloneElement(icon, { color, size });
 
-// Tab layout component
 export default function TabLayout() {
+  const { theme } = useTheme();
+
+  const tabBarStyle = {
+    backgroundColor: theme.backgroundColor, // Use backgroundColor for tab bar background
+    borderTopColor: theme.borderColor,
+    borderTopWidth: 0.5,
+    height: 65,
+    paddingTop: 5,
+  };
+
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: '#1F2937',
-        tabBarInactiveTintColor: '#9CA3AF',
-        tabBarStyle,
-      }}
-    >
-      {tabScreens.map(({ name, title, icon }) => (
-        <Tabs.Screen
-          key={name}
-          name={name}
-          options={{
-            title,
-            tabBarIcon: ({ color, size }) => renderTabIcon(icon, color, size),
-          }}
-        />
-      ))}
-    </Tabs>
+    <ThemeProvider>
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarActiveTintColor: theme.iconColor,
+          tabBarInactiveTintColor: theme.borderColor,
+          tabBarStyle,
+          tabBarLabelStyle,
+          // Removed tabBarIndicatorStyle as it is not supported in this context
+        }}
+      >
+        {tabScreens.map(({ name, title, icon }) => (
+          <Tabs.Screen
+            key={name}
+            name={name}
+            options={{
+              title,
+              tabBarIcon: ({ color, size }) => renderTabIcon(icon, color, size),
+          tabBarActiveBackgroundColor: theme.cardBackground, // Active tab has cardBackground color
+          tabBarInactiveBackgroundColor: theme.backgroundColor, // Inactive tab has backgroundColor
+            }}
+          />
+        ))}
+      </Tabs>
+    </ThemeProvider>
   );
 }

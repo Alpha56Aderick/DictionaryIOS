@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useState } from 'react';
+import { Animated, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../../context/ThemeContext';
 
 // Mock words data (this would normally be in a words.json file)
 const wordsData = [
@@ -22,6 +23,7 @@ const wordsData = [
 ];
 
 export default function FavoriteWordsScreen() {
+  const { theme } = useTheme();
   const [favoriteWords, setFavoriteWords] = useState<any[]>([]);
   const [fadeAnim] = useState(new Animated.Value(0)); // For fade in animation
 
@@ -54,20 +56,25 @@ export default function FavoriteWordsScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Favorite Words</Text>
+    <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
+      <Text style={[styles.title, { color: theme.textColor }]}>Favorite Words</Text>
       <FlatList
         data={favoriteWords}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item, index }) => (
-          <Animated.View style={[styles.item, { opacity: fadeAnim }]}>
+          <Animated.View style={[styles.item, { opacity: fadeAnim, backgroundColor: theme.cardBackground }]}>
             <View style={styles.itemContent}>
-              <Text style={styles.itemText}>{item.word}</Text>
-              <Text style={styles.definitionText}>{item.definition}</Text>
-              <TouchableOpacity onPress={() => removeFavoriteWord(index)}>
-                <Ionicons name="trash-bin-outline" size={24} color="#FF6347" />
-              </TouchableOpacity>
+              <View style={styles.wordRow}>
+                <Text style={[styles.itemText, { color: theme.textColor }]}>{item.word}</Text>
+                <View style={[styles.partOfSpeechContainer, { backgroundColor: theme.borderColor }]}>
+                  <Text style={[styles.partOfSpeechText, { color: theme.textColor }]}>{item.partOfSpeech}</Text>
+                </View>
+              </View>
+              <Text style={[styles.definitionText, { color: theme.textColor }]}>{item.definition}</Text>
             </View>
+            <TouchableOpacity onPress={() => removeFavoriteWord(index)} style={{ position: 'absolute', right: 10, top: 18 }}>
+              <Ionicons name="trash-bin-outline" size={24} color="#FF6347" />
+            </TouchableOpacity>
           </Animated.View>
         )}
       />
@@ -83,18 +90,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f0f4f8',
     padding: 16,
   },
   title: {
     fontSize: 26,
     fontWeight: '700',
-    color: '#333',
     marginBottom: 20,
   },
   item: {
     padding: 18,
-    backgroundColor: '#fff',
     borderRadius: 10,
     marginVertical: 10,
     width: '100%',
@@ -107,17 +111,28 @@ const styles = StyleSheet.create({
     opacity: 1,
   },
   itemContent: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+  },
+  wordRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  partOfSpeechContainer: {
+    borderRadius: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginLeft: 8,
+  },
+  partOfSpeechText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   itemText: {
     fontSize: 18,
-    color: '#444',
   },
   definitionText: {
     fontSize: 14,
-    color: '#666',
     fontStyle: 'italic',
   },
   button: {

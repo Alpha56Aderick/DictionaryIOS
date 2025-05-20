@@ -1,18 +1,19 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
+  Dimensions,
   FlatList,
-  TouchableOpacity,
-  ScrollView,
   Modal,
   Pressable,
-  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import wordsData from '../../../assets/data/words.json';
+import { useTheme } from '../../context/ThemeContext';
 
 type Word = {
   id: number;
@@ -28,6 +29,7 @@ const { height } = Dimensions.get('window');
 const filterOptions = ['All', 'A-Z', 'Z-A', 'Short Words', 'Long Words'];
 
 const WordsScreen: React.FC = () => {
+  const { theme } = useTheme();
   const [searchText, setSearchText] = useState<string>('');
   const [filter, setFilter] = useState<string>('All');
   const [selectedWord, setSelectedWord] = useState<Word | null>(null);
@@ -52,54 +54,61 @@ const WordsScreen: React.FC = () => {
   };
 
   const renderWordCard = ({ item }: { item: Word }) => (
-    <TouchableOpacity style={styles.card} onPress={() => handleWordPress(item)}>
+    <TouchableOpacity style={[styles.card, { backgroundColor: theme.cardBackground }]} onPress={() => handleWordPress(item)}>
       <View style={styles.cardContent}>
-        <Ionicons name="book-outline" size={24} color="#3B82F6" style={{ marginRight: 10 }} />
-        <Text style={styles.wordText}>{item.word}</Text>
+        <Ionicons name="book-outline" size={24} color={theme.iconColor} style={{ marginRight: 10 }} />
+        <Text style={[styles.wordText, { color: theme.textColor }]}>{item.word}</Text>
       </View>
     </TouchableOpacity>
   );
 
   return (
-    <View style={styles.container}>
-      {/* Search */}
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#888" />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search for a word..."
-          value={searchText}
-          onChangeText={setSearchText}
-        />
-        {searchText.length > 0 && (
-          <TouchableOpacity onPress={() => setSearchText('')}>
-            <Ionicons name="close-circle" size={20} color="#888" />
-          </TouchableOpacity>
-        )}
+    <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
+      {/* Search Section */}
+      <View style={styles.searchSection}>
+        <View style={[styles.searchContainer, { backgroundColor: theme.cardBackground }]}>
+          <Ionicons name="search" size={20} color={theme.iconColor} />
+          <TextInput
+            style={[styles.searchInput, { color: theme.textColor }]}
+            placeholder="Search for a word..."
+            placeholderTextColor={theme.borderColor}
+            value={searchText}
+            onChangeText={setSearchText}
+          />
+          {searchText.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchText('')}>
+              <Ionicons name="close-circle" size={20} color={theme.iconColor} />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
-      {/* Filter */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterContainer}>
-        {filterOptions.map((option) => (
-          <TouchableOpacity
-            key={option}
-            style={[styles.filterButton, filter === option && styles.activeFilter]}
-            onPress={() => setFilter(option)}
-          >
-            <Text style={[styles.filterText, filter === option && styles.activeFilterText]}>
-              {option}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      {/* Filter Section */}
+      <View style={styles.filterSection}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterContainer}>
+          {filterOptions.map((option) => (
+            <TouchableOpacity
+              key={option}
+              style={[styles.filterButton, filter === option && styles.activeFilter, { backgroundColor: filter === option ? theme.iconColor : theme.cardBackground }]}
+              onPress={() => setFilter(option)}
+            >
+              <Text style={[styles.filterText, filter === option && styles.activeFilterText, { color: filter === option ? theme.cardBackground : theme.textColor }]}>
+                {option}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
-      {/* Word List */}
-      <FlatList
-        data={filteredWords}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.list}
-        renderItem={renderWordCard}
-      />
+      {/* Word List Section */}
+      <View style={styles.wordListSection}>
+        <FlatList
+          data={filteredWords}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.list}
+          renderItem={renderWordCard}
+        />
+      </View>
 
       {/* Modern Modal */}
       {selectedWord && (
@@ -110,42 +119,42 @@ const WordsScreen: React.FC = () => {
           onRequestClose={() => setModalVisible(false)}
         >
           <View style={styles.modalOverlay}>
-            <View style={styles.bottomSheet}>
+            <View style={[styles.bottomSheet, { backgroundColor: theme.cardBackground }]}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalWord}>{selectedWord.word}</Text>
+                <Text style={[styles.modalWord, { color: theme.textColor }]}>{selectedWord.word}</Text>
                 <Pressable onPress={() => setModalVisible(false)}>
-                  <Ionicons name="close" size={24} color="#555" />
+                  <Ionicons name="close" size={24} color={theme.iconColor} />
                 </Pressable>
               </View>
 
               <View style={styles.modalBody}>
                 <View style={styles.infoRow}>
-                  <Ionicons name="reader-outline" size={18} color="#888" />
-                  <Text style={styles.infoText}>
+                  <Ionicons name="reader-outline" size={18} color={theme.iconColor} />
+                  <Text style={[styles.infoText, { color: theme.textColor }]}>
                     <Text style={styles.infoLabel}>Part of Speech:</Text>{' '}
                     {selectedWord.partOfSpeech || 'N/A'}
                   </Text>
                 </View>
 
                 <View style={styles.infoRow}>
-                  <Ionicons name="bulb-outline" size={18} color="#888" />
-                  <Text style={styles.infoText}>
+                  <Ionicons name="bulb-outline" size={18} color={theme.iconColor} />
+                  <Text style={[styles.infoText, { color: theme.textColor }]}>
                     <Text style={styles.infoLabel}>Meaning:</Text>{' '}
                     {selectedWord.meaning || 'N/A'}
                   </Text>
                 </View>
 
                 <View style={styles.infoRow}>
-                  <Ionicons name="swap-horizontal-outline" size={18} color="#888" />
-                  <Text style={styles.infoText}>
+                  <Ionicons name="swap-horizontal-outline" size={18} color={theme.iconColor} />
+                  <Text style={[styles.infoText, { color: theme.textColor }]}>
                     <Text style={styles.infoLabel}>Synonyms:</Text>{' '}
                     {selectedWord.synonyms?.join(', ') || 'N/A'}
                   </Text>
                 </View>
 
                 <View style={styles.infoRow}>
-                  <Ionicons name="chatbox-ellipses-outline" size={18} color="#888" />
-                  <Text style={styles.infoText}>
+                  <Ionicons name="chatbox-ellipses-outline" size={18} color={theme.iconColor} />
+                  <Text style={[styles.infoText, { color: theme.textColor }]}>
                     <Text style={styles.infoLabel}>Example:</Text>{' '}
                     {selectedWord.example || 'N/A'}
                   </Text>
@@ -162,12 +171,10 @@ const WordsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
     padding: 16,
   },
   searchContainer: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 10,
@@ -184,30 +191,37 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   filterContainer: {
-    marginBottom: 10,
+    marginBottom: 30,
+    zIndex: 1,
+  },
+  searchSection: {
+    marginBottom: 12,
+  },
+  filterSection: {
+    marginBottom: 20,
+  },
+  wordListSection: {
+    flex: 1,
   },
   filterButton: {
-    backgroundColor: '#E5E7EB',
     borderRadius: 20,
     paddingVertical: 6,
     paddingHorizontal: 14,
     marginRight: 8,
   },
   activeFilter: {
-    backgroundColor: '#3B82F6',
   },
   filterText: {
-    color: '#111827',
+    fontWeight: '600',
   },
   activeFilterText: {
-    color: '#fff',
     fontWeight: '600',
   },
   list: {
     paddingBottom: 100,
+    marginTop: 10,
   },
   card: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 20,
@@ -224,7 +238,6 @@ const styles = StyleSheet.create({
   wordText: {
     fontSize: 18,
     fontWeight: '500',
-    color: '#1F2937',
   },
   modalOverlay: {
     flex: 1,
@@ -232,7 +245,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.4)',
   },
   bottomSheet: {
-    backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -247,7 +259,6 @@ const styles = StyleSheet.create({
   modalWord: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1E40AF',
   },
   modalBody: {
     gap: 10,
@@ -259,7 +270,6 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 16,
-    color: '#374151',
     flex: 1,
     flexWrap: 'wrap',
   },
